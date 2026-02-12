@@ -482,10 +482,12 @@ export default function DailyTracker() {
     }
   };
 
-  const today = getDateKey(new Date());
+ const today = getDateKey(new Date());
+const todayISO = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD from ISO
   
-  const todayTot = meals.reduce((a, m) => {
-    if (m.date.startsWith(today) && m.totalMacros) {
+const todayTot = meals.reduce((a, m) => {
+  const mealDate = m.date ? m.date.split('T')[0] : '';
+  if ((mealDate === today || mealDate === todayISO) && m.totalMacros) {
       a.calories += m.totalMacros.calories || 0;
       a.protein += m.totalMacros.protein || 0;
       a.carbs += m.totalMacros.carbs || 0;
@@ -494,8 +496,15 @@ export default function DailyTracker() {
     return a;
   }, { calories: 0, protein: 0, carbs: 0, fats: 0 });
 
-  const todayBrn = burned.reduce((s, b) => b.date.startsWith(today) ? s + (b.calories || 0) : s, 0);
-  const todayExp = expenses.reduce((s, e) => e.date.startsWith(today) ? s + (e.amount || 0) : s, 0);
+ const todayBrn = burned.reduce((s, b) => {
+  const burnDate = b.date ? b.date.split('T')[0] : '';
+  return (burnDate === today || burnDate === todayISO) ? s + (b.calories || 0) : s;
+}, 0);
+
+const todayExp = expenses.reduce((s, e) => {
+  const expDate = e.date ? e.date.split('T')[0] : '';
+  return (expDate === today || expDate === todayISO) ? s + (e.amount || 0) : s;
+}, 0);
 
   const getSummaries = () => {
     const sum = {};
